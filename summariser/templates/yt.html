@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>YouTube Transcript to Notes</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg rounded-4">
+                <div class="card-body">
+                    <h2 class="text-center text-primary mb-4">
+                        🎥 YouTube Transcript to Detailed Notes
+                    </h2>
+
+                    <!-- Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="id_Link" class="form-label">Enter YouTube Video Link</label>
+                            {{ form.Link }}
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">
+                            Get Detailed Notes
+                        </button>
+                    </form>
+
+                    <!-- Thumbnail -->
+                    {% if video_id %}
+                        <div class="text-center mt-4">
+                            <img src="http://img.youtube.com/vi/{{ video_id }}/0.jpg"
+                                 class="img-fluid rounded shadow-sm"
+                                 alt="Video Thumbnail">
+                        </div>
+                    {% endif %}
+
+                    <!-- Summary -->
+                    {% if response %}
+                        <div class="mt-4">
+                            <h4 class="text-secondary">📝 Detailed Notes:</h4>
+                            <div class="p-3 border rounded bg-white">
+                                <p>{{ response|linebreaks }}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Error -->
+                    {% if error %}
+                        <div class="alert alert-danger mt-3">
+                            ⚠️ {{ error }}
+                        </div>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
