@@ -6,15 +6,17 @@ import time
 import requests
 from google.api_core.exceptions import ServiceUnavailable
 import google.generativeai as genai
-from youtube_transcript_api import YouTubeTranscriptApi
+
 
 # Load env
 load_dotenv()
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
-# Extract transcript
+from youtube_transcript_api import YouTubeTranscriptApi, NoTranscriptFound
+
 def extract_transcript_details(youtube_video_url):
     try:
+        # Extract video ID
         if "v=" in youtube_video_url:
             video_id = youtube_video_url.split("v=")[1].split("&")[0]
         elif "youtu.be/" in youtube_video_url:
@@ -22,12 +24,24 @@ def extract_transcript_details(youtube_video_url):
         else:
             raise ValueError("Invalid YouTube URL format")
 
-        transcript_text = YouTubeTranscriptApi.get_transcript(video_id)
+        # List all available transcripts
+        transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
 
-        transcript = " ".join([i["text"] for i in transcript_text])
+        # Try English first
+        try:
+            transcript_obj = transcript_list.find_transcript(['en'])
+        except NoTranscriptFound:
+            # fallback: pick Hindi auto-generated if English not available
+            transcript_obj = transcript_list.find_transcript(['hi'])
+
+        transcript_snippets = transcript_obj.fetch()
+        transcript = " ".join([snippet.text for snippet in transcript_snippets])
+
         return transcript, video_id
+
     except Exception as e:
-        raise e
+        print(f"Error fetching transcript: {e}")
+        return None, None
 
 # Generate summary with Gemini
 def generate_gemini_content(transcript_text, prompt):
